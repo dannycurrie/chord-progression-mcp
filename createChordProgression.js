@@ -171,13 +171,35 @@ function getChordNotes(root, degree, isMinor, octave = 4) {
 }
 
 /**
- * Generates a MIDI file with four chords in the given key
- * Uses a I-IV-V-I progression (classic chord progression)
+ * Returns the scale degrees for a progression with the specified number of chords
+ * @param numChords - Number of chords (2-6)
+ * @returns Array of scale degrees (1-7)
+ */
+function getProgressionDegrees(numChords) {
+  const patterns = {
+    2: [1, 5],           // I-V
+    3: [1, 4, 5],        // I-IV-V
+    4: [1, 4, 5, 1],     // I-IV-V-I
+    5: [1, 6, 4, 5, 1],  // I-vi-IV-V-I
+    6: [1, 6, 4, 5, 1, 4], // I-vi-IV-V-I-IV
+  };
+  
+  if (numChords < 2 || numChords > 6) {
+    throw new Error(`numChords must be between 2 and 6, got ${numChords}`);
+  }
+  
+  return patterns[numChords];
+}
+
+/**
+ * Generates a MIDI file with a specified number of chords in the given key
+ * Uses common chord progressions based on the number of chords requested
  * 
  * @param key - The musical key (e.g., "C major", "A minor", "F# major", "Bb minor")
+ * @param numChords - Number of chords in the progression (2-6, default: 4)
  * @returns The buffer of the generated MIDI file
  */
-export function createChordProgression(key) {
+export function createChordProgression(key, numChords = 4) {
   // Parse the key
   const keyInfo = parseKey(key);
   if (!keyInfo) {
@@ -191,8 +213,13 @@ export function createChordProgression(key) {
     throw new Error(`Invalid root note: ${root}. Valid notes: C, C#, D, D#, E, F, F#, G, G#, A, A#, B (or enharmonic equivalents)`);
   }
   
-  // Define the chord progression (I-IV-V-I)
-  const progression = [1, 4, 5, 1];
+  // Validate numChords
+  if (numChords < 2 || numChords > 6) {
+    throw new Error(`numChords must be between 2 and 6, got ${numChords}`);
+  }
+  
+  // Get the chord progression degrees
+  const progression = getProgressionDegrees(numChords);
   
   // Create a new MIDI track
   const track = new MidiWriter.Track();
